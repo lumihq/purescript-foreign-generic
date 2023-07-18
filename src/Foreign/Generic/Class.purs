@@ -204,15 +204,17 @@ class DecodeWithOptions a where
 class EncodeWithOptions a where
   encodeWithOptions :: Options -> a -> Foreign
 
-instance (RowToList r rl, DecodeRecord r rl) => DecodeWithOptions (Record r) where
-  decodeWithOptions opts = map (flip Builder.build {}) <$> decodeRecordWithOptions (Proxy :: Proxy rl) opts
+--instance (RowToList r rl, DecodeRecord r rl) => DecodeWithOptions (Record r) where
+--  decodeWithOptions opts = map (flip Builder.build {}) <$> decodeRecordWithOptions (Proxy :: Proxy rl) opts
 -- else instance Decode a => DecodeWithOptions a where
---   decodeWithOptions _ = decode
+instance Decode a => DecodeWithOptions a where
+   decodeWithOptions _ = decode
 
-instance (RowToList r rl, EncodeRecord r rl) => EncodeWithOptions (Record r) where
-  encodeWithOptions opts = unsafeToForeign <<< encodeRecordWithOptions (Proxy :: Proxy rl) opts
+-- instance (RowToList r rl, EncodeRecord r rl) => EncodeWithOptions (Record r) where
+--  encodeWithOptions opts = unsafeToForeign <<< encodeRecordWithOptions (Proxy :: Proxy rl) opts
 -- else instance Encode a => EncodeWithOptions a where
---   encodeWithOptions _ = encode
+instance Encode a => EncodeWithOptions a where
+   encodeWithOptions _ = encode
 
 class DecodeRecord r (rl :: RowList Type) | rl -> r where
   decodeRecordWithOptions :: Proxy rl -> Options -> Foreign -> F (Builder {} (Record r))
