@@ -216,47 +216,47 @@ instance Decode a => DecodeWithOptions a where
 instance Encode a => EncodeWithOptions a where
    encodeWithOptions _ = encode
 
-class DecodeRecord r (rl :: RowList Type) | rl -> r where
-  decodeRecordWithOptions :: Proxy rl -> Options -> Foreign -> F (Builder {} (Record r))
-
-class EncodeRecord r (rl :: RowList Type) | rl -> r where
-  encodeRecordWithOptions :: Proxy rl -> Options -> Record r -> Object Foreign
-
-instance DecodeRecord () Nil where
-  decodeRecordWithOptions _ _ _ = pure identity
-
-instance EncodeRecord () Nil where
-  encodeRecordWithOptions _ _ _ = Object.empty
-
-instance decodeRecordCons
-    :: ( Cons l a r_ r
-       , DecodeRecord r_ rl_
-       , IsSymbol l
-       , DecodeWithOptions a
-       , Lacks l r_
-       )
-    => DecodeRecord r (Cons l a rl_)
-  where
-    decodeRecordWithOptions _ opts f = do
-      builder <- decodeRecordWithOptions (Proxy :: Proxy rl_) opts f
-      let l = reflectSymbol (Proxy :: Proxy l)
-          l_transformed = (opts.fieldTransform l)
-      f_ <- index f l_transformed
-      a <- mapExcept (lmap (map (ErrorAtProperty l_transformed))) (decodeWithOptions opts f_)
-      pure (builder >>> Builder.insert (Proxy :: Proxy l) a)
-
-instance encodeRecordCons
-    :: ( Cons l a r_ r
-       , EncodeRecord r_ rl_
-       , IsSymbol l
-       , EncodeWithOptions a
-       )
-    => EncodeRecord r (Cons l a rl_)
-  where
-    encodeRecordWithOptions _ opts rec =
-      let obj = encodeRecordWithOptions (Proxy :: Proxy rl_) opts (unsafeCoerce rec)
-          l = reflectSymbol (Proxy :: Proxy l)
-       in Object.insert (opts.fieldTransform l) (encodeWithOptions opts (Record.get (Proxy :: Proxy l) rec)) obj
+-- class DecodeRecord r (rl :: RowList Type) | rl -> r where
+--   decodeRecordWithOptions :: Proxy rl -> Options -> Foreign -> F (Builder {} (Record r))
+--
+-- class EncodeRecord r (rl :: RowList Type) | rl -> r where
+--   encodeRecordWithOptions :: Proxy rl -> Options -> Record r -> Object Foreign
+--
+-- instance DecodeRecord () Nil where
+--   decodeRecordWithOptions _ _ _ = pure identity
+--
+-- instance EncodeRecord () Nil where
+--   encodeRecordWithOptions _ _ _ = Object.empty
+--
+-- instance decodeRecordCons
+--     :: ( Cons l a r_ r
+--        , DecodeRecord r_ rl_
+--        , IsSymbol l
+--        , DecodeWithOptions a
+--        , Lacks l r_
+--        )
+--     => DecodeRecord r (Cons l a rl_)
+--   where
+--     decodeRecordWithOptions _ opts f = do
+--       builder <- decodeRecordWithOptions (Proxy :: Proxy rl_) opts f
+--       let l = reflectSymbol (Proxy :: Proxy l)
+--           l_transformed = (opts.fieldTransform l)
+--       f_ <- index f l_transformed
+--       a <- mapExcept (lmap (map (ErrorAtProperty l_transformed))) (decodeWithOptions opts f_)
+--       pure (builder >>> Builder.insert (Proxy :: Proxy l) a)
+--
+-- instance encodeRecordCons
+--     :: ( Cons l a r_ r
+--        , EncodeRecord r_ rl_
+--        , IsSymbol l
+--        , EncodeWithOptions a
+--        )
+--     => EncodeRecord r (Cons l a rl_)
+--   where
+--     encodeRecordWithOptions _ opts rec =
+--       let obj = encodeRecordWithOptions (Proxy :: Proxy rl_) opts (unsafeCoerce rec)
+--           l = reflectSymbol (Proxy :: Proxy l)
+--        in Object.insert (opts.fieldTransform l) (encodeWithOptions opts (Record.get (Proxy :: Proxy l) rec)) obj
 
 class GenericDecode a where
   decodeOpts :: Options -> Foreign -> F a
