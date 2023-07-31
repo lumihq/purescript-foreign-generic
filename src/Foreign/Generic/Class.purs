@@ -87,6 +87,9 @@ defaultOptions =
 class Decode a where
   decode :: Foreign -> F a
 
+instance Decode (Proxy a) where
+  decode _ = pure Proxy
+
 instance Decode Void where
   decode _ = except (Left (pure (ForeignError "Decode: void")))
 
@@ -148,6 +151,9 @@ instance (RowToList r rl, DecodeRecord r rl) => Decode (Record r) where
 -- | to encode your data as JSON.
 class Encode a where
   encode :: a -> Foreign
+
+instance Encode (Proxy a) where
+  encode _ = null
 
 instance Encode Void where
   encode = absurd
